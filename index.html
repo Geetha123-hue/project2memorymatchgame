@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        #landing-page, #game-container {
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .category-btn {
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .flipped, .matched {
+            background-color: lightgreen;
+        }
+    </style>
+</head>
+<body>
+    <h1>Memory Match Game</h1>
+    <div id="landing-page">
+        <button class="category-btn" onclick="startGame('Fruits')">Fruits</button>
+        <button class="category-btn" onclick="startGame('Emojis')">Emojis</button>
+        <button class="category-btn" onclick="startGame('Animals')">Animals</button>
+        <button class="category-btn" onclick="startGame('Planets')">Planets</button>
+        <button class="category-btn" onclick="startGame('Flags')">Flags</button>
+    </div>
+    <h2 id="score">Score: 0</h2>
+    <h2 id="timer">Time: 30s</h2>
+    <div id="game-container"></div>
+    
+    <script>
+        const categories = {
+            Fruits: ['🍎', '🍌', '🍇', '🍉', '🍒', '🍓', '🥝', '🍍'],
+            Emojis: ['😀', '😂', '😍', '😎', '🤔', '😇', '🤩', '🥳'],
+            Animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'],
+            Planets: ['🌍', '🌕', '🪐', '🌞', '🌛', '⭐', '☄️', '🌟'],
+            Flags: ['🇺🇸', '🇬🇧', '🇫🇷', '🇩🇪', '🇮🇳', '🇯🇵', '🇨🇦', '🇧🇷']
+        };
+
+        let selectedCategory = '';
+        let cards = [];
+        let flippedCards = [];
+        let matchedCards = 0;
+        let timer;
+        let timeLeft = 30;
+        let score = 0;
+
+        function startGame(category) {
+            selectedCategory = category;
+            cards = shuffle([...categories[category], ...categories[category]]);
+            renderCards();
+            startTimer();
+            score = 0;
+            updateScore();
+        }
+
+        function shuffle(array) {
+            return array.sort(() => 0.5 - Math.random());
+        }
+
+        function renderCards() {
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.innerHTML = '';
+            cards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.index = index;
+                card.addEventListener('click', handleCardClick);
+                gameContainer.appendChild(card);
+            });
+        }
+
+        function handleCardClick(event) {
+            const card = event.target;
+            if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
+                card.textContent = cards[card.dataset.index];
+                card.classList.add('flipped');
+                flippedCards.push(card);
+            }
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 1000);
+            }
+        }
+
+        function checkMatch() {
+            if (flippedCards[0].textContent === flippedCards[1].textContent) {
+                flippedCards.forEach(card => card.classList.add('matched'));
+                matchedCards += 2;
+                score += 10;
+                updateScore();
+            } else {
+                flippedCards.forEach(card => {
+                    card.classList.remove('flipped');
+                    card.textContent = '';
+                });
+            }
+            flippedCards = [];
+            if (matchedCards === cards.length) {
+                endGame(true);
+            }
+        }
+
+        function startTimer() {
+            timeLeft = 30;
+            document.getElementById('timer').textContent = `Time: ${timeLeft}s`;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time: ${timeLeft}s`;
+                if (timeLeft === 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function endGame(win) {
+            clearInterval(timer);
+            alert(win ? `You Win! Score: ${score}` : 'Game Over! Try Again.');
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `Score: ${score}`;
+        }
+    </script>
+</body>
+</html>
